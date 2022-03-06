@@ -7,8 +7,18 @@ $env: GOOGLE_APPLICATION_CREDENTIALS = "C:\Users\Jay\Downloads\canteen-managemen
 
 admin.initializeApp({
     credential: admin.credential.applicationDefault(),
-    databaseURL: 'https://canteen-management-systems.firebaseio.com/'
+    databaseURL: 'https://canteen-management-systems-20a8c.asia-southeast1.firebasedatabase.app/'
 });
+
+// const app1 = admin.initializeApp({
+//     credential: admin.credential.applicationDefault(),
+//     databaseURL: "https://canteen-management-systems.firebaseio.com/"
+//   }, 'app1');
+  
+//   const een-managemcantent-systems-20a8c = admin.initializeApp({
+//     credential: admin.credential.applicationDefault(),
+//     databaseURL: "https://canteen-management-systems-20a8c.asia-southeast1.firebasedatabase.app/"
+//   }, 'canteen-management-systems-20a8c');
 
 const db = admin.database();
 
@@ -21,7 +31,7 @@ const db = admin.database();
 //   functions.logger.info("Hello logs!", {structuredData: true});
 //   response.send("Hello from Firebase!");
 // });
-exports.onNodeUpdated = functions.database.ref("Status/{transactionId}").
+exports.onNodeUpdated = functions.region('asia-southeast1').database.instance('canteen-management-systems-20a8c').ref("Status/{transactionId}").
     onUpdate((snapshot, context) => {
         console.log("Snapshot is" + snapshot.after.toJSON());
         var key1 = snapshot.before.key;
@@ -64,7 +74,7 @@ exports.onNodeUpdated = functions.database.ref("Status/{transactionId}").
             })
     });
 
-exports.onNodeCreated = functions.database.ref("Status/{transactionId}").
+exports.onNodeCreated = functions.region('asia-southeast1').database.instance('canteen-management-systems-20a8c').ref("Status/{transactionId}").
     onCreate((snapshot, context) => {
 
         var key1 = snapshot.key;
@@ -108,7 +118,7 @@ exports.onNodeCreated = functions.database.ref("Status/{transactionId}").
 
     });
 
-exports.onNodeDeleted = functions.database.ref("Status/{transactionId}").
+exports.onNodeDeleted = functions.region('asia-southeast1').database.instance('canteen-management-systems-20a8c').ref("Status/{transactionId}").
     onDelete((snapshot, context) => {
 
         var key1 = snapshot.key;
