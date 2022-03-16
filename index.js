@@ -162,4 +162,41 @@ exports.onNodeDeleted = functions.region('asia-southeast1').database.instance('c
 
     });
 
+    Asia/Kolkata
+    exports.scheduledFunctionCrontab = functions.pubsub.schedule('5 23 * * *')
+  .timeZone('Asia/Kolkata') // Users can choose timezone - default is America/Los_Angeles
+  .onRun((context) => {
+  console.log('Working!');
+  const billRef = db.ref("Bill");
+  var date = new Date();
+  var day = date.getDate();
+  var year = date.getFullYear();
+  var month = date.getMonth();
+  var query = billRef.orderByKey().limitToLast(1000);
+
+
+
+  query.once('value').then(function(datasnapshot){
+    billData = datasnapshot.toJSON();
+    for(var key in billData){
+        var data = billData[key];
+        var billDate = data['time'];
+        var billDay = billDate.slice(8,10);
+        var billMonth = billDate.slice(5,7);
+        var billYear = billDate.slice(0,4);
+        if (day.localeCompare(billDay) == 0 && month.localeCompare(billMonth) == 0 && year.localeCompare(billYear) == 0){
+            console.log("Value found");
+        }
+
+    }
+  });
+ 
+
+
+
+  return null;
+});
+
+
+
     
