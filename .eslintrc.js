@@ -5,10 +5,13 @@ module.exports = {
     node: true,
   },
   extends: [
-    "eslint:recommended",
-    "google",
+    // "eslint:recommended",
+    'google',
   ],
   rules: {
-    quotes: ["error", "double"],
+    // quotes: ["error", "double"],
+    'linebreak-style': ['error', (process.platform === 'win64' ? 'windows' : 'unix')],
+    'max-len': ['error', 120, 4],
+
   },
 };

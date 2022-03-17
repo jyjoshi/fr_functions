@@ -1,24 +1,29 @@
+/* eslint-disable */
+
 const functions = require("firebase-functions");
 const { DataSnapshot } = require("firebase-functions/v1/database");
 const { snapshotConstructor } = require("firebase-functions/v1/firestore");
-var admin = require('firebase-admin');
+var admin = require("firebase-admin");
+const {convertArrayToCSV} = require('convert-array-to-csv')
+var nodemailer = require('nodemailer');
+const { getMaxListeners } = require('process');
 
 $env: GOOGLE_APPLICATION_CREDENTIALS = "C:\Users\Jay\Downloads\canteen-management-systems-firebase-adminsdk-6457x-d58bc242c2.json"
 
 admin.initializeApp({
     credential: admin.credential.applicationDefault(),
-    databaseURL: 'https://canteen-management-systems-20a8c.asia-southeast1.firebasedatabase.app/'
+    databaseURL: "https://canteen-management-systems-20a8c.asia-southeast1.firebasedatabase.app/"
 });
 
 // const app1 = admin.initializeApp({
 //     credential: admin.credential.applicationDefault(),
 //     databaseURL: "https://canteen-management-systems.firebaseio.com/"
-//   }, 'app1');
+//   }, "app1");
   
 //   const een-managemcantent-systems-20a8c = admin.initializeApp({
 //     credential: admin.credential.applicationDefault(),
 //     databaseURL: "https://canteen-management-systems-20a8c.asia-southeast1.firebasedatabase.app/"
-//   }, 'canteen-management-systems-20a8c');
+//   }, "canteen-management-systems-20a8c");
 
 const db = admin.database();
 
@@ -31,7 +36,7 @@ const db = admin.database();
 //   functions.logger.info("Hello logs!", {structuredData: true});
 //   response.send("Hello from Firebase!");
 // });
-exports.onNodeUpdated = functions.region('asia-southeast1').database.instance('canteen-management-systems-20a8c').ref("Status/{transactionId}").
+exports.onNodeUpdated = functions.region("asia-southeast1").database.instance("canteen-management-systems-20a8c").ref("Status/{transactionId}").
     onUpdate((snapshot, context) => {
         console.log("Snapshot is" + snapshot.after.toJSON());
         var key1 = snapshot.before.key;
@@ -47,7 +52,7 @@ exports.onNodeUpdated = functions.region('asia-southeast1').database.instance('c
                     console.log("Value of Key 2 :" + key2);
                     if (key1.localeCompare(key2) == 0) {
                         var data = billData[key2];
-                        var phoneNo = data['phone']
+                        var phoneNo = data["phone"]
                         console.log("Phone Number is " + phoneNo);
                         var query2 = db.ref("MessageIds/" + phoneNo);
                         query2.once("value")
@@ -74,7 +79,7 @@ exports.onNodeUpdated = functions.region('asia-southeast1').database.instance('c
             })
     });
 
-exports.onNodeCreated = functions.region('asia-southeast1').database.instance('canteen-management-systems-20a8c').ref("Status/{transactionId}").
+exports.onNodeCreated = functions.region("asia-southeast1").database.instance("canteen-management-systems-20a8c").ref("Status/{transactionId}").
     onCreate((snapshot, context) => {
 
         var key1 = snapshot.key;
@@ -90,7 +95,7 @@ exports.onNodeCreated = functions.region('asia-southeast1').database.instance('c
                     // console.log("Value of Key 2 :" + key2);
                     if (key1.localeCompare(key2) == 0) {
                         var data = billData[key2];
-                        var phoneNo = data['phone']
+                        var phoneNo = data["phone"]
                         // console.log("Phone Number is " + phoneNo);
                         var query2 = db.ref("MessageIds/" + phoneNo);
                         query2.once("value")
@@ -118,7 +123,7 @@ exports.onNodeCreated = functions.region('asia-southeast1').database.instance('c
 
     });
 
-exports.onNodeDeleted = functions.region('asia-southeast1').database.instance('canteen-management-systems-20a8c').ref("Status/{transactionId}").
+exports.onNodeDeleted = functions.region("asia-southeast1").database.instance("canteen-management-systems-20a8c").ref("Status/{transactionId}").
     onDelete((snapshot, context) => {
 
         var key1 = snapshot.key;
@@ -134,7 +139,7 @@ exports.onNodeDeleted = functions.region('asia-southeast1').database.instance('c
                     // console.log("Value of Key 2 :" + key2);
                     if (key1.localeCompare(key2) == 0) {
                         var data = billData[key2];
-                        var phoneNo = data['phone']
+                        var phoneNo = data["phone"]
                         // console.log("Phone Number is " + phoneNo);
                         var query2 = db.ref("MessageIds/" + phoneNo);
                         query2.once("value")
@@ -162,37 +167,114 @@ exports.onNodeDeleted = functions.region('asia-southeast1').database.instance('c
 
     });
 
-    Asia/Kolkata
-    exports.scheduledFunctionCrontab = functions.pubsub.schedule('5 23 * * *')
-  .timeZone('Asia/Kolkata') // Users can choose timezone - default is America/Los_Angeles
+    exports.scheduledFunctionCrontab = functions.pubsub.schedule("5 23 * * *")
+  .timeZone("Asia/Kolkata") // Users can choose timezone - default is America/Los_Angeles
   .onRun((context) => {
-  console.log('Working!');
+  console.log("Working!");
+
+  const menuRef = db.ref("Menu");
   const billRef = db.ref("Bill");
-  var date = new Date();
-  var day = date.getDate();
-  var year = date.getFullYear();
-  var month = date.getMonth();
   var query = billRef.orderByKey().limitToLast(1000);
+  
+  var date = new Date();
+  var day = parseInt(date.getDate()) - 1;
+  var year = parseInt(date.getFullYear());
+  var month = parseInt(date.getMonth())+1;
+
+  var totalAmount = 0;
+  var map = {}
+
+  menuRef.once("value").then(function(datasnapshot){
+      menuData = datasnapshot.toJSON();
+      for(var key in menuData){
+        var data = menuData[key]
+        var innerMap = {
+            "name" : data['name'],
+            "price": data['price'],
+            "qty":0,
+            "res":0
+        }
+
+        map[key] = innerMap
+
+    }
+
+    console.log("Map Value Inside:")
+    console.log(map)
+      
+  })
+
+  console.log("Map Value Outside:")
+  console.log(map)
 
 
-
-  query.once('value').then(function(datasnapshot){
+  query.once("value").then(function(datasnapshot){
     billData = datasnapshot.toJSON();
     for(var key in billData){
         var data = billData[key];
-        var billDate = data['time'];
-        var billDay = billDate.slice(8,10);
-        var billMonth = billDate.slice(5,7);
-        var billYear = billDate.slice(0,4);
-        if (day.localeCompare(billDay) == 0 && month.localeCompare(billMonth) == 0 && year.localeCompare(billYear) == 0){
+        var billDate = data["time"];
+        var billDay = parseInt(billDate.slice(8,10));
+        var billMonth = parseInt(billDate.slice(5,7));
+        var billYear = parseInt(billDate.slice(0,4));
+        if (day == billDay && month == billMonth && year == billYear){
             console.log("Value found");
+            for(var key2 in orderedItems){
+                var orderedItem = orderedItems[key2]
+                map[key2]['qty'] += parseInt(orderedItem['qty'])
+                map[key2]['res'] += parseInt(orderedItem['result'])
+                totalAmount += parseInt(orderedItem['result'])
+            }
         }
 
     }
   });
- 
 
+  // Store data in Arrays which will be converted to csv and sent via email.
+  var itemsArray = []
+  for (var key in map){
+    console.log(map[key])
+    dataPiece = map[key]
 
+    var extraString = key.toString()
+    itemsArray
+    .push({
+        name: dataPiece['name'],
+        price: dataPiece['price'], 
+        qty: dataPiece['qty'],
+        res: dataPiece['res']
+    })
+}
+
+const csv = convertArrayToCSV(itemsArray)
+
+var transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: 'jayjoshi112711@gmail.com',
+      pass: 'xcwkllgeqguuivdc'
+    }
+  })
+
+  var mailOptions = {
+    from: 'jayjoshi112711@gmail.com',
+    to: 'jjoshitest@gmail.com',
+    subject: 'Sending Email using Node.js',
+    text: 'That was easy!',
+    attachments: [
+        {
+            filename: "daily_report.csv",
+            content: csv,
+        },
+    ]
+  };
+
+  transporter.sendMail(mailOptions, function(error, info){
+    if (error) {
+      console.log(error);
+    } else {
+      console.log('Email sent: ' + info.response);
+    }
+  });
 
   return null;
 });
